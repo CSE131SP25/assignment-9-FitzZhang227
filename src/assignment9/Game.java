@@ -1,62 +1,104 @@
 package assignment9;
 
+import java.awt.Color;
 import java.awt.event.KeyEvent;
-
 import edu.princeton.cs.introcs.StdDraw;
 
 public class Game {
-	
-	public Game() {
-		StdDraw.enableDoubleBuffering();
-		
-		//FIXME - construct new Snake and Food objects
-	}
-	
-	public void play() {
-		while (true) { //TODO: Update this condition to check if snake is in bounds
-			int dir = getKeypress();
-			//Testing only: you will eventually need to do more work here
-			System.out.println("Keypress: " + dir);
-			
-			/*
-			 * 1. Pass direction to your snake
-			 * 2. Tell the snake to move
-			 * 3. If the food has been eaten, make a new one
-			 * 4. Update the drawing
-			 */
-		}
-	}
-	
-	private int getKeypress() {
-		if(StdDraw.isKeyPressed(KeyEvent.VK_W)) {
-			return 1;
-		} else if (StdDraw.isKeyPressed(KeyEvent.VK_S)) {
-			return 2;
-		} else if (StdDraw.isKeyPressed(KeyEvent.VK_A)) {
-			return 3;
-		} else if (StdDraw.isKeyPressed(KeyEvent.VK_D)) {
-			return 4;
-		} else {
-			return -1;
-		}
-	}
-	
-	/**
-	 * Clears the screen, draws the snake and food, pauses, and shows the content
-	 */
-	private void updateDrawing() {
-		//FIXME
-		
-		/*
-		 * 1. Clear screen
-		 * 2. Draw snake and food
-		 * 3. Pause (50 ms is good)
-		 * 4. Show
-		 */
-	}
-	
-	public static void main(String[] args) {
-		Game g = new Game();
-		g.play();
-	}
+    private Snake snake;
+    private Food food;
+    private boolean gameOver;
+    private int score;
+    
+    public Game() {
+        StdDraw.enableDoubleBuffering();
+        this.snake = new Snake();
+        this.food = new Food();
+        this.gameOver = false;
+        this.score = 0;
+        
+        StdDraw.setCanvasSize(600, 600);
+        StdDraw.setXscale(0, 1);
+        StdDraw.setYscale(0, 1);
+        StdDraw.clear(Color.BLACK);
+    }
+    
+    private void updateGame() {
+        int speed = 100 - (score / 50) * 10; 
+        speed = Math.max(speed, 30); 
+        StdDraw.pause(speed);
+    }
+    public void play() {
+        while (!gameOver) {
+            int dir = getKeypress();
+            
+            if (dir != -1) {
+                snake.changeDirection(dir);
+            }
+            
+            snake.move();
+            
+            if (snake.eatFood(food)) {
+                score += 10;
+                food.respawn();
+            }
+            
+            if (!snake.isInbounds()) {
+                gameOver = true;
+            }
+            
+            updateDrawing();
+            
+            StdDraw.pause(100);
+        }
+        
+        displayGameOver();
+    }
+    
+    private int getKeypress() {
+        if (StdDraw.isKeyPressed(KeyEvent.VK_W)) {
+            return 1;
+        } else if (StdDraw.isKeyPressed(KeyEvent.VK_S)) {
+            return 2;
+        } else if (StdDraw.isKeyPressed(KeyEvent.VK_A)) {
+            return 3;
+        } else if (StdDraw.isKeyPressed(KeyEvent.VK_D)) {
+            return 4;
+        } else {
+            return -1;
+        }
+    }
+    
+    private void updateDrawing() {
+        StdDraw.clear(Color.BLACK);
+        
+        StdDraw.setPenColor(Color.WHITE);
+        StdDraw.text(0.1, 0.95, "Score: " + score);
+        
+        snake.draw();
+        food.draw();
+        
+        StdDraw.show();
+    }
+    
+    private void displayGameOver() {
+        StdDraw.clear(Color.BLACK);
+        StdDraw.setPenColor(Color.RED);
+        StdDraw.text(0.5, 0.6, "GAME OVER");
+        StdDraw.setPenColor(Color.WHITE);
+        StdDraw.text(0.5, 0.5, "Final Score: " + score);
+        StdDraw.text(0.5, 0.4, "Press any key to exit");
+        StdDraw.show();
+        
+        // Wait for key press before exiting
+        while (!StdDraw.isKeyPressed(KeyEvent.VK_SPACE)) {
+            StdDraw.pause(100);
+        }
+        System.exit(0);
+    }
+    
+    public static void main(String[] args) {
+        Game g = new Game();
+        g.play();
+    }
 }
